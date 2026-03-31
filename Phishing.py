@@ -48,3 +48,4 @@ for email, label in zip(new_emails, predictions):
     print(f"Email: {email}\nPrediction: {'Phishing' if label == 1 else 'Legitimate'}\n")
 
 
+# TEST FOR SYD  
