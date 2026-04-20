@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Phishing Email Detection Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #2b4d75 0%, #1761a0 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      font-weight: 300;
+    }
+    .subtitle {
+      margin: 10px 0 0 0;
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+    .content {
+      padding: 30px;
+    }
+    .input-section {
+      margin-bottom: 30px;
+    }
+    .input-section h2 {
+      color: #2b4d75;
+      margin-bottom: 15px;
+      font-size: 1.4em;
+    }
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      font-size: 16px;
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    input[type="email"]:focus {
+      outline: none;
+      border-color: #1761a0;
+      box-shadow: 0 0 0 3px rgba(23, 97, 160, 0.1);
+    }
+    button {
+      margin-top: 15px;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1761a0 0%, #2b4d75 100%);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(23, 97, 160, 0.3);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .results-section {
+      margin-top: 30px;
+    }
+    .result-card {
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 5px solid;
+      transition: transform 0.3s;
+    }
+    .result-card:hover {
+      transform: translateX(5px);
+    }
+    .phishing {
+      background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+      border-left-color: #d32f2f;
+      color: #b71c1c;
+    }
+    .review {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+      border-left-color: #f57c00;
+      color: #e65100;
+    }
+    .legitimate {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      border-left-color: #388e3c;
+      color: #1b5e20;
+    }
+    .result-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .confidence-bars {
+      display: flex;
+      gap: 20px;
+      margin: 15px 0;
+    }
+    .confidence-bar {
+      flex: 1;
+    }
+    .confidence-bar label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+    .bar-container {
+      background: #f5f5f5;
+      border-radius: 10px;
+      height: 20px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 1s ease-in-out;
+    }
+    .text-confidence .bar-fill { background: linear-gradient(90deg, #2196f3, #1976d2); }
+    .url-confidence .bar-fill { background: linear-gradient(90deg, #ff9800, #f57c00); }
+    .confidence-value {
+      text-align: center;
+      font-weight: 600;
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+    .details {
+      margin-top: 15px;
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+    .features {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border: 1px solid #e9ecef;
+    }
+    .features h3 {
+      margin: 0 0 10px 0;
+      color: #2b4d75;
+      font-size: 1.1em;
+    }
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .feature-item {
+      padding: 8px 12px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #dee2e6;
+      font-size: 0.85em;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    .warning strong {
+      color: #533f00;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1> Hybrid Phishing Detection</h1>
+      <p class="subtitle">Real-time email analysis using Text + URL detection</p>
+    </div>
+
+    <div class="content">
+      <div class="input-section">
+        <h2>📧 Email Content Analysis</h2>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+          Enter email content below to analyze for phishing indicators using hybrid text and URL detection.
+        </p>
+        <textarea id="emailContent" placeholder="Paste your email content here..." rows="8" style="width: 100%; padding: 12px; font-size: 16px; border: 2px solid #e1e5e9; border-radius: 8px; margin-bottom: 10px; font-family: monospace;"></textarea>
+        <button onclick="analyzeEmail()">Analyze Email</button>
+      </div>
+
+      <div id="results" class="results-section" style="display: none;">
+        <h2>Analysis Results</h2>
+
+        <div id="decisionCard" class="result-card">
+          <div class="result-title" id="decisionTitle">Analyzing...</div>
+          <div id="decisionText">Processing your email...</div>
+        </div>
+
+        <div class="confidence-bars">
+          <div class="confidence-bar text-confidence">
+            <label>Text Analysis Confidence</label>
+            <div class="bar-container">
+              <div class="bar-fill" id="textBar" style="width: 0%"></div>
+            </div>
+            <div class="confidence-value" id="textValue">0.00</div>
+          </div>
+
+          <div class="confidence-bar url-confidence">
+            <label>URL Analysis Confidence</label>
+            <div class="bar-container">
+              <div class="bar-fill" id="urlBar" style="width: 0%"></div>
+            </div>
+            <div class="confidence-value" id="urlValue">0.00</div>
+          </div>
+        </div>
+
+        <div class="features">
+          <h3>Detected Features</h3>
+          <div id="featureList" class="feature-list">
+            <!-- Features will be populated here -->
+          </div>
+        </div>
+      </div>
+
+  <script>
+    // Enhanced suspicious keywords for text analysis
+    const suspiciousWords = [
+      'verify', 'password', 'account', 'urgent', 'click', 'invoice', 'payment',
+      'link', 'delivery', 'secure', 'suspended', 'locked', 'update', 'action',
+      'confirm', 'bank', 'billing', 'receipt', 'unusual', 'alert', 'credentials',
+      'charge', 'refund', 'suspicious', 'unauthorized', 'breach', 'compromise',
+      'validate', 'authenticate', 'login', 'signin', 'reset', 'recovery',
+      // Prize/scam indicators
+      'congratulations', 'winner', 'won', 'prize', 'award', 'gift', 'free',
+      'claim', 'collect', 'reward', 'bonus', 'jackpot', 'lottery', 'sweepstakes',
+      // Money/financial requests
+      'credit card', 'debit card', 'card number', 'cvv', 'expiration', 'pin',
+      'bank account', 'routing number', 'wire transfer', 'bitcoin', 'crypto',
+      'paypal', 'venmo', 'cash app', 'zelle', 'western union', 'moneygram',
+      // Urgency/pressure tactics
+      'limited time', 'today only', 'expires soon', 'deadline', 'immediate',
+      'act now', 'don\'t wait', 'time sensitive', 'urgent action', 'final notice',
+      // Suspicious offers
+      'inheritance', 'overpayment', 'refund', 'compensation', 'settlement',
+      'guaranteed', 'risk free', 'no obligation', 'easy money', 'work from home',
+      // Educational phishing
+      'grade', 'score', 'transcript', 'enrollment', 'tuition', 'financial aid',
+      'scholarship', 'admission', 'acceptance', 'rejection', 'waitlist', 'deferral',
+      'view your grade', 'check your score', 'academic record', 'student portal',
+      // Click/link manipulation
+      'click here', 'click below', 'click the link', 'follow this link',
+      'open attachment', 'download file', 'view document', 'see attachment'
+    ];
+
+    // URL analysis patterns
+    const suspiciousUrlPatterns = [
+      /https?:\/\/.*\..*\..*\..*/,  // Multiple subdomains
+      /https?:\/\/.*\d{4,}/,        // Long numbers in URL
+      /https?:\/\/.*-.*-.*-/,       // Multiple hyphens
+      /https?:\/\/.*login.*/,       // Login in URL
+      /https?:\/\/.*secure.*/,      // Secure in URL
+      /https?:\/\/.*bank.*/,        // Bank in URL
+      /https?:\/\/.*paypal.*/,      // PayPal in URL
+      /bit\.ly|tinyurl|t\.co|goo\.gl|ow\.ly/,     // URL shorteners
+      /https?:\/\/.*\..{2,3}\/.*\?/, // Query parameters
+      /https?:\/\/.*%[0-9A-Fa-f]{2}/, // URL encoding
+      // Random/fake domains (gibberish patterns)
+      /https?:\/\/[a-z]{8,}\.com/,   // Very long random domain names
+      /https?:\/\/.*[qwxz]{3,}.*/,   // Multiple uncommon letters
+      /https?:\/\/.*[aeiou]{0,2}[^aeiou]{4,}.*/, // Consonant clusters
+      /https?:\/\/d[a-z]{6,}\.com/,  // Domains starting with 'd' + random
+      /https?:\/\/.*j.*w.*d.*\..*/,  // Gibberish letter combinations
+      // Suspicious TLDs
+      /\.xyz|\.top|\.club|\.online|\.site|\.website|\.space|\.fun|\.icu/,
+      // IP addresses disguised as domains
+      /https?:\/\/\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3}/,
+      // Educational phishing domains
+      /https?:\/\/.*grade.*\.com|https?:\/\/.*score.*\.com|https?:\/\/.*transcript.*\.com/
+    ];
+
+    function extractUrls(text) {
+      // Enhanced URL regex to catch various formats
+      const urlRegex = /(?:https?:\/\/|www\.|\b)([^\s<>"']+\.[^\s<>"']{2,})/g;
+      const matches = text.match(urlRegex) || [];
+
+      // Clean up matches to get full URLs
+      return matches.map(match => {
+        if (match.startsWith('http')) {
+          return match;
+        } else if (match.startsWith('www.')) {
+          return 'http://' + match; // Add protocol for analysis
+        } else {
+          return 'http://' + match; // Add protocol for bare domains
+        }
+      });
+    }
+
+    function analyzeTextContent(text) {
+      const lower = text.toLowerCase();
+      let keywordCount = 0;
+      const foundKeywords = [];
+
+      suspiciousWords.forEach(word => {
+        const count = (lower.match(new RegExp(word, 'g')) || []).length;
+        if (count > 0) {
+          keywordCount += count;
+          foundKeywords.push(`${word} (${count})`);
+        }
+      });
+
+      // Calculate text confidence based on keyword density and patterns
+      const wordCount = text.split(/\s+/).length;
+      const keywordDensity = keywordCount / Math.max(wordCount, 1);
+
+      // Urgency indicators
+      const urgencyWords = ['urgent', 'immediately', 'now', 'asap', 'deadline', 'expires',
+                           'today', 'limited time', 'expires soon', 'act now', 'don\'t wait',
+                           'time sensitive', 'immediate action', 'final notice', 'last chance'];
+      const urgencyCount = urgencyWords.reduce((count, word) =>
+        count + (lower.includes(word) ? 1 : 0), 0);
+
+      // Calculate confidence score (0-1)
+      let confidence = Math.min(keywordDensity * 2 + urgencyCount * 0.1, 1);
+
+      // Boost confidence for certain combinations
+      if (keywordCount >= 3) confidence = Math.max(confidence, 0.8);
+      if (keywordCount >= 5) confidence = Math.max(confidence, 0.95);
+
+      // Special boost for educational phishing
+      const hasEducational = lower.includes('grade') || lower.includes('score') || lower.includes('transcript');
+      const hasClick = lower.includes('click here') || lower.includes('click below') || lower.includes('click the link');
+      const hasCongratulations = lower.includes('congratulations');
+
+      if (hasEducational && hasClick) confidence = Math.max(confidence, 0.9);
+      if (hasCongratulations && hasClick) confidence = Math.max(confidence, 0.85);
+      if (hasEducational && hasCongratulations) confidence = Math.max(confidence, 0.8);
+
+      return {
+        confidence: confidence,
+        keywordCount: keywordCount,
+        foundKeywords: foundKeywords,
+        urgencyCount: urgencyCount
+      };
+    }
+
+    function analyzeUrls(urls, text) {
+      if (urls.length === 0) {
+        return { confidence: 0, suspiciousUrls: [], features: [] };
+      }
+
+      // Check for educational content in text
+      const lowerText = text.toLowerCase();
+      const hasEducational = lowerText.includes('grade') || lowerText.includes('score') || lowerText.includes('transcript');
+
+      let totalSuspiciousScore = 0;
+      const suspiciousUrls = [];
+      const features = [];
+
+      urls.forEach(url => {
+        let urlScore = 0;
+        const urlFeatures = [];
+
+        // Check against suspicious patterns with weighted scoring
+        suspiciousUrlPatterns.forEach((pattern, index) => {
+          if (pattern.test(url)) {
+            // Give higher weight to certain patterns
+            let weight = 0.2;
+            if (index >= 10 && index <= 14) { // Random/fake domain patterns (adjusted for removed pattern)
+              weight = 0.4; // Higher weight for gibberish domains
+            } else if (index >= 15 && index <= 16) { // Suspicious TLDs and disguised IPs (adjusted)
+              weight = 0.35;
+            } else if (index === 17) { // Educational phishing domains (adjusted)
+              weight = 0.5; // Highest weight for educational phishing
+            }
+
+            urlScore += weight;
+            urlFeatures.push(pattern.toString().replace(/[/\\^$*+?.()|[\]{}]/g, '').slice(0, 20) + '...');
+          }
+        });
+
+        // Length analysis
+        if (url.length > 100) {
+          urlScore += 0.1;
+          urlFeatures.push('Very long URL');
+        }
+
+        // Domain analysis
+        try {
+          const domain = url.match(/https?:\/\/([^/]+)/)?.[1] || '';
+          if (domain.includes('.')) {
+            const parts = domain.split('.');
+            if (parts.length > 3) {
+              urlScore += 0.15;
+              urlFeatures.push('Multiple subdomains');
+            }
+          }
+
+          // Check for numbers in domain
+          if (/\d/.test(domain)) {
+            urlScore += 0.1;
+            urlFeatures.push('Numbers in domain');
+          }
+
+          // Additional checks for educational phishing - only for suspicious domains
+          const lowerUrl = url.toLowerCase();
+          const isKnownLegitimate = lowerUrl.includes('amazon.com') || lowerUrl.includes('google.com') ||
+                                   lowerUrl.includes('microsoft.com') || lowerUrl.includes('apple.com') ||
+                                   lowerUrl.includes('facebook.com') || lowerUrl.includes('twitter.com') ||
+                                   lowerUrl.includes('linkedin.com') || lowerUrl.includes('youtube.com') ||
+                                   lowerUrl.includes('github.com') || lowerUrl.includes('wikipedia.org');
+
+          if (hasEducational && !lowerUrl.includes('.edu') && !lowerUrl.includes('school') &&
+              !lowerUrl.includes('university') && !lowerUrl.includes('college') &&
+              !lowerUrl.includes('blackboard') && !lowerUrl.includes('canvas') &&
+              !isKnownLegitimate && urlScore > 0) {  // Only boost if already suspicious
+            urlScore += 0.2; // Reduced boost and only for already suspicious URLs
+            urlFeatures.push('Educational content with suspicious domain');
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+
+        if (urlScore > 0) {
+          suspiciousUrls.push({
+            url: url.length > 50 ? url.substring(0, 47) + '...' : url,
+            score: Math.min(urlScore, 1),
+            features: urlFeatures
+          });
+          totalSuspiciousScore += urlScore;
+        }
+      });
+
+      const avgConfidence = urls.length > 0 ? Math.min(totalSuspiciousScore / urls.length, 1) : 0;
+
+      return {
+        confidence: avgConfidence,
+        suspiciousUrls: suspiciousUrls,
+        features: features
+      };
+    }
+
+    function animateBar(elementId, percentage) {
+      const bar = document.getElementById(elementId);
+      setTimeout(() => {
+        bar.style.width = percentage + '%';
+      }, 100);
+    }
+
+    function analyzeEmail() {
+      const text = document.getElementById('emailContent').value.trim();
+      const resultsDiv = document.getElementById('results');
+
+      if (!text) {
+        alert('Please enter some email content to analyze.');
+        return;
+      }
+
+      // Show results section
+      resultsDiv.style.display = 'block';
+
+      // Extract URLs
+      const urls = extractUrls(text);
+
+      // Analyze text content
+      const textAnalysis = analyzeTextContent(text);
+
+      // Analyze URLs
+      const urlAnalysis = analyzeUrls(urls, text);
+
+      // Calculate hybrid decision
+      const textConf = textAnalysis.confidence;
+      const urlConf = urlAnalysis.confidence;
+
+      // Hybrid logic: flag as phishing if either analysis is highly confident
+      let decision, decisionClass, decisionText;
+
+      if (textConf >= 0.85 || urlConf >= 0.85) {
+        decision = 'PHISHING';
+        decisionClass = 'phishing';
+        decisionText = '🚨 High-risk email detected! This appears to be a phishing attempt.';
+      } else if (textConf >= 0.7 || urlConf >= 0.7) {
+        decision = 'REVIEW';
+        decisionClass = 'review';
+        decisionText = '⚠️ Requires manual review. This email shows some suspicious characteristics.';
+      } else {
+        decision = 'LEGITIMATE';
+        decisionClass = 'legitimate';
+        decisionText = '✅ Appears legitimate based on content analysis.';
+      }
+
+      // Update decision card
+      document.getElementById('decisionCard').className = `result-card ${decisionClass}`;
+      document.getElementById('decisionTitle').textContent = `🎯 Decision: ${decision}`;
+      document.getElementById('decisionText').textContent = decisionText;
+
+      // Update confidence bars
+      animateBar('textBar', textConf * 100);
+      animateBar('urlBar', urlConf * 100);
+      document.getElementById('textValue').textContent = textConf.toFixed(3);
+      document.getElementById('urlValue').textContent = urlConf.toFixed(3);
+
+      // Update features
+      const featureList = document.getElementById('featureList');
+      featureList.innerHTML = '';
+
+      // Add text features
+      if (textAnalysis.foundKeywords.length > 0) {
+        featureList.innerHTML += `
+          <div class="feature-item">
+            <strong>📝 Suspicious Keywords:</strong> ${textAnalysis.foundKeywords.slice(0, 3).join(', ')}
+            ${textAnalysis.foundKeywords.length > 3 ? ` +${textAnalysis.foundKeywords.length - 3} more` : ''}
+          </div>
+        `;
+      }
+
+      if (textAnalysis.urgencyCount > 0) {
+        featureList.innerHTML += `
+          <div class="feature-item">
+            <strong>⏰ Urgency Indicators:</strong> ${textAnalysis.urgencyCount} found
+          </div>
+        `;
+      }
+
+      // Add URL features
+      if (urls.length > 0) {
+        featureList.innerHTML += `
+          <div class="feature-item">
+            <strong>🔗 URLs Found:</strong> ${urls.length} total
+          </div>
+        `;
+      }
+
+      if (urlAnalysis.suspiciousUrls.length > 0) {
+        urlAnalysis.suspiciousUrls.slice(0, 2).forEach(suspicious => {
+          featureList.innerHTML += `
+            <div class="feature-item">
+              <strong>🚨 Suspicious URL:</strong> ${suspicious.url}<br>
+              <small>Features: ${suspicious.features.join(', ')}</small>
+            </div>
+          `;
+        });
+      }
+
+      if (featureList.innerHTML === '') {
+        featureList.innerHTML = '<div class="feature-item">No suspicious features detected</div>';
+      }
+    }
+  </script>
+</body>
+</html>
