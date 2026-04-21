@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hybrid Phishing Email Detection Demo</title>
+  <title>Phishing Email Detection</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -194,13 +194,13 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1> Hybrid Phishing Detection</h1>
+      <h1>Phishing Detection</h1>
       <p class="subtitle">Real-time email analysis using Text + URL detection</p>
     </div>
 
     <div class="content">
       <div class="input-section">
-        <h2>📧 Email Content Analysis</h2>
+        <h2>Email Content Analysis</h2>
         <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
           Enter email content below to analyze for phishing indicators using hybrid text and URL detection.
         </p>
@@ -510,7 +510,7 @@
 
       // Update decision card
       document.getElementById('decisionCard').className = `result-card ${decisionClass}`;
-      document.getElementById('decisionTitle').textContent = `🎯 Decision: ${decision}`;
+      document.getElementById('decisionTitle').textContent = `Decision: ${decision}`;
       document.getElementById('decisionText').textContent = decisionText;
 
       // Update confidence bars
@@ -527,7 +527,7 @@
       if (textAnalysis.foundKeywords.length > 0) {
         featureList.innerHTML += `
           <div class="feature-item">
-            <strong>📝 Suspicious Keywords:</strong> ${textAnalysis.foundKeywords.slice(0, 3).join(', ')}
+            <strong>Suspicious Keywords:</strong> ${textAnalysis.foundKeywords.slice(0, 3).join(', ')}
             ${textAnalysis.foundKeywords.length > 3 ? ` +${textAnalysis.foundKeywords.length - 3} more` : ''}
           </div>
         `;
@@ -536,7 +536,7 @@
       if (textAnalysis.urgencyCount > 0) {
         featureList.innerHTML += `
           <div class="feature-item">
-            <strong>⏰ Urgency Indicators:</strong> ${textAnalysis.urgencyCount} found
+            <strong>Urgency Indicators:</strong> ${textAnalysis.urgencyCount} found
           </div>
         `;
       }
@@ -554,7 +554,7 @@
         urlAnalysis.suspiciousUrls.slice(0, 2).forEach(suspicious => {
           featureList.innerHTML += `
             <div class="feature-item">
-              <strong>🚨 Suspicious URL:</strong> ${suspicious.url}<br>
+              <strong>Suspicious URL:</strong> ${suspicious.url}<br>
               <small>Features: ${suspicious.features.join(', ')}</small>
             </div>
           `;
